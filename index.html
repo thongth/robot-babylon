@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <title>Babylon.js sample code</title>
+
+        <!-- Babylon.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
+        <script src="https://preview.babylonjs.com/ammo.js"></script>
+        <script src="https://preview.babylonjs.com/cannon.js"></script>
+        <script src="https://preview.babylonjs.com/Oimo.js"></script>
+        <script src="https://preview.babylonjs.com/earcut.min.js"></script>
+        <script src="https://preview.babylonjs.com/babylon.js"></script>
+        <script src="https://preview.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+        <script src="https://preview.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+        <script src="https://preview.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
+        <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.js"></script>
+        <script src="https://preview.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
+        <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
+        <script src="https://preview.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+
+        <style>
+            html, body {
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+            }
+        </style>
+    </head>
+<body>
+    <canvas id="renderCanvas"></canvas>
+    <script>
+        var canvas = document.getElementById("renderCanvas");
+
+        var startRenderLoop = function (engine, canvas) {
+            engine.runRenderLoop(function () {
+                if (sceneToRender && sceneToRender.activeCamera) {
+                    sceneToRender.render();
+                }
+            });
+        }
+
+        var engine = null;
+        var scene = null;
+        var sceneToRender = null;
+        var createDefaultEngine = function() { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true,  disableWebGL2Support: false}); };
+        const createScene =  () => {
+    const scene = new BABYLON.Scene(engine);
+
+    const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 4, 1.5* Math.PI / 4, 20, new BABYLON.Vector3(0, 0, 0));
+    camera.attachControl(canvas, true);
+    var light = new BABYLON.DirectionalLight("dir01", new BABYLON.Vector3(-1, -2, -1), scene);
+        light.position = new BABYLON.Vector3(40, 80, 40);
+        light.intensity = 1.5;
+
+        // var ground = BABYLON.Mesh.CreateGround("ground", 1000, 1000, 32, scene);
+        // var materialground = new BABYLON.StandardMaterial("ground", scene);
+        // materialground.diffuseTexture = new BABYLON.Texture("./ground.jpg", scene);
+        // materialground.diffuseTexture.uScale = 10;//Repeat 5 times on the Vertical Axes
+        // materialground.diffuseTexture.vScale = 10;//Repeat 5 times on the Horizontal Axes
+        // materialground.backFaceCulling = false;//Allways show the front and the back of an element
+        // ground.material = materialground;
+        // ground.checkCollisions = true;
+    
+    const groundMat = new BABYLON.StandardMaterial("groundMat");
+    groundMat.diffuseColor = new BABYLON.Color3(0.145, 0.588, 0.745)
+
+    const ground = BABYLON.MeshBuilder.CreateGround("ground", {width:100, height:100});
+    ground.material = groundMat;
+    
+    const robot = buildRobot();
+    robot.position.y = 0.8
+    
+    const roundPlate1 = build2LayerRoundPlate("roundPlate1",0.5,0.7,0.8,0.1, 0.2)
+    const roundPlate2 = roundPlate1.clone("roundPlate2")
+    
+    roundPlate1.position.y = 1.2
+    roundPlate1.position.x = 0.75
+    roundPlate1.rotation.z = Math.PI /2
+
+    roundPlate2.rotation.y = Math.PI 
+    roundPlate2.rotation.z = Math.PI /2
+    roundPlate2.position.x = -0.75
+    roundPlate2.position.y = 1.2
+
+    const doubleRoundPlate = BABYLON.Mesh.MergeMeshes([roundPlate1, roundPlate2])
+    doubleRoundPlate.parent = robot
+
+    const sphereL = BABYLON.MeshBuilder.CreateSphere("sphereL", {diameter: .5});
+        sphereL.parent = doubleRoundPlate;
+        sphereL.position = new BABYLON.Vector3(0, (1.8) , 0);
+        // sphereL.rotation.x = Math.PI / 4;
+        sphereL.checkCollisions = true;
+
+    const mainBody = buildRoundPlate("mainBody", 0.5, 0.7, 1.6, 1.1)
+    mainBody.parent = sphereL
+    mainBody.rotation.z = Math.PI/2
+    mainBody.position.x = -0.55
+    mainBody.position.y = 0.5
+
+    const sphereL2 = BABYLON.MeshBuilder.CreateSphere("sphereL2", {diameter: .5});
+    sphereL2.parent = mainBody;
+    sphereL2.position = new BABYLON.Vector3(0.8, (-0.5) , 0);
+        // sphereL2.checkCollisions = true;
+
+    // robot.rotation.y = Math.PI/2
+    // sphereL.rotation.x = Math.PI/2
+
+    const controlPlate1 = build2LayerRoundPlate("controlPlate1",0.5,0.6,1.6,0.2,0.2)
+    const controlPlate2 = controlPlate1.clone()
+
+    controlPlate1.rotation.z = Math.PI /2
+    controlPlate2.rotation.z = Math.PI /2
+
+    controlPlate1.position.x = 0.6
+    controlPlate2.position.x = -0.7
+
+
+    const doubleControlPlate = BABYLON.Mesh.MergeMeshes([controlPlate1, controlPlate2])
+
+    doubleControlPlate.parent = sphereL2
+    doubleControlPlate.rotation.z = -Math.PI/2
+    doubleControlPlate.position.x = 1
+
+    const sphereH = BABYLON.MeshBuilder.CreateSphere("sphereH", {diameter: .5});
+        sphereH.parent = doubleControlPlate;
+        sphereH.position = new BABYLON.Vector3(0, (1) , 0);
+        // sphereH.rotation.x = Math.PI / 4;
+        sphereH.checkCollisions = true;
+
+    const hanger = buildHanger()
+    hanger.parent = sphereH
+    hanger.rotation.z = -Math.PI/2
+    hanger.rotation.x = -Math.PI/2
+    hanger.position.x = 0.35
+    hanger.position.z = -1.4
+
+    const hangerPlate = buildRoundPlate("hangerPlate", 0.4, 0.4, 1, 0.1)
+    const hangerPlate2 = buildRoundPlate("hangerPlate2", 0.4, 0.4, 1, 0.1)
+    hangerPlate.parent = hanger
+    hangerPlate2.parent = hanger
+    hangerPlate.position.x = -2
+    hangerPlate2.position.x = -2
+    hangerPlate2.position.y = -0.6
+
+    const picker = BABYLON.MeshBuilder.CreateCylinder("picker", {diameter: 0.6, height:0.8})
+    picker.parent = hanger
+    picker.position.x = -2.5
+    picker.position.y = -0.35
+    picker.rotation.y = Math.PI/4
+
+    const pickerHead = BABYLON.MeshBuilder.CreateCylinder("pickerHead", {diameter: 0.4, height:0.6})
+    pickerHead.parent = picker
+    pickerHead.position.z = -0.5
+    pickerHead.rotation.x = Math.PI/2
+
+    const sphereP = BABYLON.MeshBuilder.CreateSphere("sphereP", {diameter: 0.1});
+        sphereP.parent = pickerHead;
+        sphereP.position = new BABYLON.Vector3(0, (-0.3) , 0);
+        // sphereP.rotation.x = Math.PI / 4;
+        sphereP.checkCollisions = true;
+
+    const pickerPlate = buildRoundPlate("pickerPlate", 0.2, 0.2, 0.4, 0.1)
+    pickerPlate.parent = sphereP
+    pickerPlate.rotation.y = Math.PI / 2
+    pickerPlate.position.z = 0.2
+    // pickerPlate.position.y = -0.2
+
+    const pickerStick = BABYLON.MeshBuilder.CreateCylinder("pickerStick", {diameter:0.1, height:0.5})
+    pickerStick.parent = pickerPlate
+    pickerStick.position.x = -0.2
+    pickerStick.position.y = -0.35
+
+    const pickerPick = BABYLON.MeshBuilder.CreateBox("pickerPick", {width: 0.5, height: 0.5, depth: 0.05})
+    pickerPick.parent = pickerStick
+    pickerPick.rotation.x = Math.PI / 2
+    pickerPick.position.y = -0.2
+
+    // GUI
+    var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+    var selectBox = new BABYLON.GUI.SelectionPanel("spi");
+    selectBox.width = 0.25;
+    selectBox.height = 0.8;
+    selectBox.background = "#1388AF";
+    selectBox.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    selectBox.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+     
+    const changeJointBase = (y) => {
+        robot.rotation.y = BABYLON.Angle.FromDegrees(y).radians()
+    }
+
+    const changeJoint1 = (x) => {
+        sphereL.rotation.x = BABYLON.Angle.FromDegrees(x).radians()
+    }
+
+    const changeJoint2 = (y) => {
+        sphereL2.rotation.y = BABYLON.Angle.FromDegrees(y).radians()
+    }
+
+    const changeJoint3 = (x) => {
+        sphereH.rotation.x = BABYLON.Angle.FromDegrees(x).radians()
+    }
+
+    const changeJoint4 = (y) => {
+        picker.rotation.y = BABYLON.Angle.FromDegrees(y).radians()
+    }
+
+    const changeJoint5 = (y) => {
+        sphereP.rotation.y = BABYLON.Angle.FromDegrees(y).radians()
+    }
+
+    advancedTexture.addControl(selectBox);
+
+	var jointXGroup = new BABYLON.GUI.SliderGroup("Impulse Direction", "S");
+	jointXGroup.addSlider("Base", changeJointBase, "degrees", -180, 180, 0);
+	jointXGroup.addSlider("Main body", changeJoint1, "degrees", -90, 90, 0);
+    jointXGroup.addSlider("Control plate", changeJoint2, "degrees", -90, 90, 0);
+    jointXGroup.addSlider("Hanger", changeJoint3, "degrees", 0, 180, 0);
+    jointXGroup.addSlider("Picker", changeJoint4, "degrees", 0, 180, 0);
+    jointXGroup.addSlider("Picker Head", changeJoint5, "degrees", 0, 360, 0);
+
+    selectBox.addGroup(jointXGroup);
+
+    // Skybox
+        var skybox = BABYLON.MeshBuilder.CreateBox("wall", {size: 300});
+        var skyboxMaterial = new BABYLON.StandardMaterial("wall", scene);
+        skyboxMaterial.backFaceCulling = false;
+        skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("./wall", scene);
+        skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+        skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+        skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+        skybox.material = skyboxMaterial;
+        skybox.checkCollisions = true;
+
+        // Shadows
+        var shadowGenerator = new BABYLON.ShadowGenerator(1024, light);
+        shadowGenerator.getShadowMap().renderList.push(robot);
+        shadowGenerator.getShadowMap().renderList.push(doubleRoundPlate);
+        shadowGenerator.getShadowMap().renderList.push(mainBody);
+        shadowGenerator.getShadowMap().renderList.push(doubleControlPlate);
+        shadowGenerator.getShadowMap().renderList.push(hanger);
+        shadowGenerator.getShadowMap().renderList.push(hangerPlate);
+        shadowGenerator.getShadowMap().renderList.push(hangerPlate2);
+        shadowGenerator.getShadowMap().renderList.push(picker);
+        shadowGenerator.getShadowMap().renderList.push(pickerHead);
+        shadowGenerator.getShadowMap().renderList.push(pickerPick);
+        shadowGenerator.getShadowMap().renderList.push(pickerStick);
+        shadowGenerator.getShadowMap().renderList.push(pickerPlate);
+        shadowGenerator.useVarianceShadowMap = true;
+        ground.receiveShadows = true;
+        skybox.receiveShadows = true;
+
+    return scene;
+}
+
+const buildRobot = () => {
+    const base = BABYLON.MeshBuilder.CreateCylinder("base", {diameter: 1.5, height: 1.5})
+    return base
+}
+
+const build2LayerRoundPlate = (name, r1, r2, width, depth, depth2) => {
+    const roundPlate = buildRoundPlate(name + "plate", r1, r2, width, depth)
+    const plate = BABYLON.MeshBuilder.CreateCylinder(name, {diameter: r2*2, height:depth2})
+    plate.position.y = depth2/2 
+    plate.position.x = width/2
+    plate.parent = roundPlate
+    return roundPlate
+}
+
+const buildRoundPlate = (name, r1, r2, width, depth) => {
+    const xCenterCircle1 =  -(width/2)
+    const xCenterCircle2 =  (width/2)
+    const outline = []
+    for (let i = 0; i <= 40; i++) {
+        const x = r1*Math.cos(Math.PI/2 + i*Math.PI/40)
+        const z = r1*Math.sin(Math.PI/2 + i*Math.PI/40)
+        outline.push(new BABYLON.Vector3(x + xCenterCircle1, 0, z))
+    }
+    for (let i = 0; i <= 40; i++) {
+        const x = r2*Math.cos(3*Math.PI/2 + i*Math.PI/40)
+        const z = r2*Math.sin(3*Math.PI/2 + i*Math.PI/40)
+        outline.push(new BABYLON.Vector3(x + xCenterCircle2, 0, z))
+    }
+    const roundPlate = BABYLON.MeshBuilder.ExtrudePolygon(name, {shape: outline, depth})
+    return roundPlate
+}
+
+const buildHanger = () => {
+    const roundPlate = buildRoundPlate("hangerPlate", 0.4, 0.5, 3, 0.7)
+    // const cylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder1", {diameter: 0.4, height: 0.5})
+    // cylinder.parent = roundPlate
+    // cylinder.rotation.x = Math.PI /2
+    // cylinder.rotation.y = Math.PI /4
+    // cylinder.position.x = -1.8
+    // cylinder.position.y = -0.35
+    return roundPlate
+}
+                window.initFunction = async function() {
+                    
+                    
+                    var asyncEngineCreation = async function() {
+                        try {
+                        return createDefaultEngine();
+                        } catch(e) {
+                        console.log("the available createEngine function failed. Creating the default engine instead");
+                        return createDefaultEngine();
+                        }
+                    }
+
+                    window.engine = await asyncEngineCreation();
+        if (!engine) throw 'engine should not be null.';
+        startRenderLoop(engine, canvas);
+        window.scene = createScene();};
+        initFunction().then(() => {sceneToRender = scene                    
+        });
+
+        // Resize
+        window.addEventListener("resize", function () {
+            engine.resize();
+        });
+    </script>
+</body>
+</html>
