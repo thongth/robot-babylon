@@ -76,6 +76,9 @@
 
     const ground = BABYLON.MeshBuilder.CreateGround("ground", {width:100, height:100});
     ground.material = groundMat;
+
+    const whiteTexture = new BABYLON.StandardMaterial("whiteTexture");
+    whiteTexture.diffuseColor = new BABYLON.Color3.Red();
     
     const robot = buildRobot();
     robot.position.y = 0.8
@@ -101,6 +104,12 @@
         // sphereL.rotation.x = Math.PI / 4;
         sphereL.checkCollisions = true;
 
+    const jointCylinder1 = BABYLON.MeshBuilder.CreateCylinder("jointCylinder1", {diameter: 1, height: 2})
+    jointCylinder1.parent = doubleRoundPlate
+    jointCylinder1.rotation.z = Math.PI/2
+    jointCylinder1.position.y = 1.5
+    jointCylinder1.material = whiteTexture
+
     const mainBody = buildRoundPlate("mainBody", 0.5, 0.7, 1.6, 1.1)
     mainBody.parent = sphereL
     mainBody.rotation.z = Math.PI/2
@@ -114,6 +123,12 @@
 
     // robot.rotation.y = Math.PI/2
     // sphereL.rotation.x = Math.PI/2
+
+    const jointCylinder2 = BABYLON.MeshBuilder.CreateCylinder("jointCylinder2", {diameter: 0.5, height: 1.8})
+    jointCylinder2.parent = mainBody
+    jointCylinder2.position.x = 1
+    jointCylinder2.position.y = -0.55
+    jointCylinder2.material = whiteTexture
 
     const controlPlate1 = build2LayerRoundPlate("controlPlate1",0.5,0.6,1.6,0.2,0.2)
     const controlPlate2 = controlPlate1.clone()
@@ -136,6 +151,13 @@
         sphereH.position = new BABYLON.Vector3(0, (1) , 0);
         // sphereH.rotation.x = Math.PI / 4;
         sphereH.checkCollisions = true;
+
+    const jointCylinder3 = BABYLON.MeshBuilder.CreateCylinder("jointCylinder3", {diameter: 0.8, height: 1.8})
+    jointCylinder3.parent = doubleControlPlate
+    jointCylinder3.rotation.z = Math.PI/2
+    jointCylinder3.position.x = 0.05
+    jointCylinder3.position.y = 0.9
+    jointCylinder3.material = whiteTexture
 
     const hanger = buildHanger()
     hanger.parent = sphereH
