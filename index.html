@@ -78,7 +78,7 @@
     ground.material = groundMat;
 
     const whiteTexture = new BABYLON.StandardMaterial("whiteTexture");
-    whiteTexture.diffuseColor = new BABYLON.Color3.Red();
+    whiteTexture.diffuseColor = new BABYLON.Color3(0.7098039215686275, 0.6509803921568628, 0.25882352941176473);
     
     const robot = buildRobot();
     robot.position.y = 0.8
@@ -184,6 +184,8 @@
     pickerHead.parent = picker
     pickerHead.position.z = -0.5
     pickerHead.rotation.x = Math.PI/2
+    picker.material = whiteTexture
+    pickerHead.material = whiteTexture
 
     const sphereP = BABYLON.MeshBuilder.CreateSphere("sphereP", {diameter: 0.1});
         sphereP.parent = pickerHead;
@@ -195,6 +197,7 @@
     pickerPlate.parent = sphereP
     pickerPlate.rotation.y = Math.PI / 2
     pickerPlate.position.z = 0.2
+    pickerPlate.material = whiteTexture
     // pickerPlate.position.y = -0.2
 
     const pickerStick = BABYLON.MeshBuilder.CreateCylinder("pickerStick", {diameter:0.1, height:0.5})
